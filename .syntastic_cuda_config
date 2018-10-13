@@ -1,0 +1,2 @@
+let g:syntastic_cuda_compiler_options='-std=gnu++11'
+let g:syntastic_cpp_check_header=1

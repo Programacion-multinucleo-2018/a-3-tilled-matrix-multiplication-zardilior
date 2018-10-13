@@ -18,3 +18,4 @@ Rubric:
 3. GPU code is initialized correctly, and the device memory is deallocated.
 4. Implement matrix multiplication using shared memory and tiling.
 5. Report the average processing time and speedup for the different tile sizes.
+Tiled GPU Test, N: 2000 duration 0.043624 msGPU Test, N: 2000 duration 0.004726 msCPU Test, N: 2000 duration 35804.738281 ms
