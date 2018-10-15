@@ -2,7 +2,9 @@
 #include <chrono>
 
 int main(int argc, char ** argv) {
-
+    printf("Results for *********\n");
+    printf("N %d\n",N);
+    printf("Tile Size %d\n",Tile);
     ///  The A and B matrix
     int * A;
     int * B; 
@@ -12,7 +14,7 @@ int main(int argc, char ** argv) {
     int * UntiledGPUC; 
     int * CPUC;
 
-	/// Matrix in GPU
+    /// Matrix in GPU
     int * GPUA;
     int * GPUB;
     int * GPUC;
@@ -49,18 +51,23 @@ int main(int argc, char ** argv) {
     dim3 Grid((N/Tile) + 1, (N/Tile) + 1, 1);
     /// Number of threads in each block
     dim3 Block(Tile, Tile, 1);
+    std::chrono::duration<float, std::milli> total_duration_ms = std::chrono::milliseconds::zero(); 
 
-    // Initialize timer
-    auto start = std::chrono::high_resolution_clock::now();
+    for(int i=0;i<20;i++){
 
-    /// Launch the GPU Tiled Kernel
-    matMultiplyTiled<<<Grid, Block>>>(N,GPUA, GPUB, GPUC);
+        // Initialize timer
+        auto start = std::chrono::high_resolution_clock::now();
 
-    // Finish timer
-    auto end = std::chrono::high_resolution_clock::now();
+        /// Launch the GPU Tiled Kernel
+        matMultiplyTiled<<<Grid, Block>>>(N,GPUA, GPUB, GPUC);
 
-    std::chrono::duration<float, std::milli> duration_ms = end - start;
-    printf("Tiled GPU Test, N: %d duration %f ms\n",N,duration_ms.count());
+        // Finish timer
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<float, std::milli> duration_ms = end - start;
+        total_duration_ms += duration_ms;
+    }
+    printf("Tiled GPU Test, N: %d average duration %f ms\n",N,total_duration_ms.count()/20.0);
     fflush(stdout); 
 
 
@@ -72,17 +79,21 @@ int main(int argc, char ** argv) {
     cudaFree(GPUC);
     cudaMalloc((void **)&GPUC, sizeof(int)*N*N);
 
-    // Initialize timer
-    start = std::chrono::high_resolution_clock::now();
+    total_duration_ms = std::chrono::milliseconds::zero(); 
+    for(int i=0;i<20;i++){
+        // Initialize timer
+        auto start = std::chrono::high_resolution_clock::now();
 
-    /// Launch the GPU UnTiled Kernel
-    matMultiplyGPU<<<Grid, Block>>>(N,GPUA, GPUB, GPUC);
+        /// Launch the GPU UnTiled Kernel
+        matMultiplyGPU<<<Grid, Block>>>(N,GPUA, GPUB, GPUC);
 
-    // Finish timer
-    end = std::chrono::high_resolution_clock::now();
+        // Finish timer
+        auto end = std::chrono::high_resolution_clock::now();
 
-    duration_ms = end - start;
-    printf("Untiled GPU Test, N: %d duration %f ms\n",N,duration_ms.count());
+        std::chrono::duration<float, std::milli> duration_ms = end - start;
+        total_duration_ms += duration_ms;
+    }
+    printf("Untiled GPU Test, N: %d average duration %f ms\n",N,total_duration_ms.count()/20.0);
     fflush(stdout); 
 
     cudaDeviceSynchronize(); 
@@ -90,15 +101,15 @@ int main(int argc, char ** argv) {
     cudaMemcpy(UntiledGPUC, GPUC, sizeof(int)*N*N, cudaMemcpyDeviceToHost);
 
     // Initialize timer
-    start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
 
     /// CPU mat Multiply
     matMultiplyCPUOMP(N, A, B, CPUC);
 
     // Finish timer
-    end = std::chrono::high_resolution_clock::now();
-
-    duration_ms = end - start;
+    auto end = std::chrono::high_resolution_clock::now();
+    
+    std::chrono::duration<float, std::milli> duration_ms = end - start;
     printf("CPU Test, N: %d duration %f ms\n",N,duration_ms.count());
     fflush(stdout); 
 
@@ -195,7 +206,7 @@ void matMultiplyTiled(int N, int * a, int * b, int * c){
 		/// copy Data to Tile from Matrix (Global Memory to Shared Memory)
 		if ( (Row < N) && (threadIdx.x + (k*Tile)) < N) {
 			sharedA[threadIdx.y][threadIdx.x] =
-				 a[(N*N) + threadIdx.x + (k*Tile)];
+				 a[(Row*N) + threadIdx.x + (k*Tile)];
         }
         /// due to the matrix not always being a multiple
         else

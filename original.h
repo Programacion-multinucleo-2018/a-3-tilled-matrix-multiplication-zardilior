@@ -8,10 +8,10 @@
 #include <omp.h>
 
 // Tile size
-#define Tile 2 
+#define Tile 32 
 
 /** dimension to be squared for the matrix */
-int N = 200;   
+int N = 2000;   
 
 /** Verify that two matrix have the same values */
 bool verifyMatrix(int N, int * C1,int * C2);
