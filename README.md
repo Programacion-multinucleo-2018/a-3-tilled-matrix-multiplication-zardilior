@@ -18,6 +18,8 @@ Rubric:
 3. GPU code is initialized correctly, and the device memory is deallocated.
 4. Implement matrix multiplication using shared memory and tiling.
 5. Report the average processing time and speedup for the different tile sizes.
+
+**Grade: 100**
 ******
 Results for 
 N 2000
